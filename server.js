@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const connectDatabase = require('./connectDatabase');
 const app = express();
 
 
@@ -11,7 +12,8 @@ app.use(express.json());
 
 const port = process.env.PORT || 3000;
 
-
+/* connect to database */
+connectDatabase();
 
 /* Endpoints */
 /* start */
