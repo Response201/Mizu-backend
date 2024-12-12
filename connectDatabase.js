@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const seedProducts = require('./functions/seedProducts');
 require('dotenv').config();
+
 /* MongoDB connection URL, defaults to local if not specified */
 const mongoUrl = process.env.MONGO_URL || "mongodb://localhost:27017/Mizu";
 

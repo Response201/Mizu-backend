@@ -4,14 +4,17 @@ const connectDatabase = require('./connectDatabase');
 const { allProduct } = require('./controllers/products');
 const app = express();
 
+
+/* connect to database */
+connectDatabase();
+
 /*  Middleware setup - cors and json */
 app.use(cors());
 app.use(express.json());
 
 const port = process.env.PORT || 3000;
 
-/* connect to database */
-connectDatabase();
+
 
 /* Endpoints */
 
