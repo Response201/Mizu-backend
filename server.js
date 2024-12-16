@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const connectDatabase = require('./connectDatabase');
-const { allProduct } = require('./controllers/products');
+const { allProduct, updateRating, sortProducts } = require('./controllers/products');
+const { authUser } = require('./middwares/auth');
+const { createUser, signIn, signOut } = require('./controllers/user');
+
+const { cleanUpBlacklist } = require('./middwares/cleanBlackList');
 const app = express();
 
 
@@ -9,8 +13,13 @@ const app = express();
 connectDatabase();
 
 /*  Middleware setup - cors and json */
-app.use(cors());
+app.use(cors('*'));
 app.use(express.json());
+
+/*clean up Blacklist from old tokens  */
+app.use(cleanUpBlacklist);
+
+
 
 const port = process.env.PORT || 3000;
 
@@ -29,6 +38,36 @@ app.get("/", (req, res) => {
 
 /* get all products */
 app.get("/allProducts", allProduct);
+
+
+/* Update rating */
+
+app.put("/updateRating", authUser, updateRating);
+
+/* Sort products */
+
+app.get("/sortProducts", sortProducts)
+
+
+
+
+/* User */
+
+/* create user */
+app.post("/createUser", createUser);
+
+
+
+/* sign in user */
+app.post("/signin", signIn);
+
+
+/* sign out user */
+app.post("/signout", signOut);
+
+
+
+
 
 
 

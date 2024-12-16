@@ -17,7 +17,8 @@ const productSchema = new mongoose.Schema({
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       rating: { type: Number, required: true, min: 1, max: 5 }
     }
-  ]
+  ],
+  averageRating:{type: Number, default:0}
 });
 
 
