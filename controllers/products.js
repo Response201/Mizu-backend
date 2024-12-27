@@ -26,6 +26,7 @@ exports.allProduct = async (req, res) => {
 
 
 
+
 /* Sort products */
 exports.sortProducts = async (req, res) => {
     try {
@@ -38,6 +39,7 @@ exports.sortProducts = async (req, res) => {
         const search = req.query.search || "";
         const sort = req.query.sort || "averageRating";
         const category = req.query.category || "all";
+        const pickAndMix = req.query.pickAndMix || false;
 
         /* Om kategori är 'all', ta alla unika kategorier, annars filtrera på de valda */
         const categoriesToFilter = category === "all" ? uniqueCategories : req.query.category.split(",");
@@ -47,7 +49,7 @@ exports.sortProducts = async (req, res) => {
 
 
         /*  Skapa sorteringsobjekt för MongoDB, 
-    (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc)   }) */
+            (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc)   }) */
         let sortCriteria = {};
 
         sortArray.forEach(field => {
@@ -63,20 +65,31 @@ exports.sortProducts = async (req, res) => {
             sortCriteria.averageRating = 1;
         }
 
+
+
+        /* Bygg matchningskriterier för aggregation */
+        const matchCriteria = {
+            name: { $regex: search, $options: "i" },
+            category: { $in: categoriesToFilter }
+        };
+
+        // Lägg till pickAndMix-filter om true
+        if (pickAndMix) {
+            matchCriteria.pickAndMix = true;
+        }
+
+
         /* Skapa sorteringsobjekt för MongoDB */
         const aggregationPipeline = [
             /*   Matcha produkter med sökning och kategori */
             {
-                $match: {
-                    name: { $regex: search, $options: "i" },
-                    category: { $in: categoriesToFilter }
-                }
+                $match: matchCriteria // Matcha produkter med sökning, kategori och pickAndMix
             },
             {
                 $sort: sortCriteria  // Sortera baserat på sorteringskriterier (pris, betyg)
             },
             {
-                $skip: page * limit   
+                $skip: page * limit
             },
             {
                 $limit: limit // Limit => antal produkter
@@ -88,9 +101,11 @@ exports.sortProducts = async (req, res) => {
 
         /* Räkna det totala antalet produkter som matchar sökning och filtrering för paginering */
         const total = await Product.countDocuments({
+            name: { $regex: search, $options: "i" },
             category: { $in: categoriesToFilter },
-            name: { $regex: search, $options: "i" }
+            ...(pickAndMix ? { pickAndMix: true } : {})
         });
+
 
         /* Skapa ett svar med total antal produkter, nuvarande sida, limit och resultat */
         const response = {
