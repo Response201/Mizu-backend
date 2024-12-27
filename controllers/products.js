@@ -76,7 +76,7 @@ exports.sortProducts = async (req, res) => {
                 $sort: sortCriteria  // Sortera baserat på sorteringskriterier (pris, betyg)
             },
             {
-                $skip: page * limit   // Hoppa över produkter baserat på sidnummer och limit
+                $skip: page * limit   
             },
             {
                 $limit: limit // Limit => antal produkter
@@ -98,6 +98,7 @@ exports.sortProducts = async (req, res) => {
             page: page + 1,
             limit,
             products: getSearch,
+            categories: uniqueCategories
         };
 
         res.status(200).json(response);

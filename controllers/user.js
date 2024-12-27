@@ -14,14 +14,14 @@ const Blacklist = require("../models/Blacklist")
 exports.signOut = async (req, res) => {
     const token = req.header("Authorization").slice(7);
 
-
+console.log(token)
     /*   Sätt en utgångstid för tokenen*/
 
     const expiresAt = new Date();
 
-    /* Lägg till 2 minuter till expiresAt för att hantera eventuella fel som kan uppstå. */
+    /* Lägg till 1 timma till expiresAt för att hantera eventuella fel som kan uppstå. När ändringar sedan görs i schemat och det gått mer än 1 timma kommer token att raderas */
 
-    expiresAt.setMinutes(expiresAt.getMinutes() + 2);
+    expiresAt.setHours(expiresAt.getHours() + 1);
 
     /*  Skapa en ny post i blacklisten med tokenen och dess utgångstid. */
     const blacklistToken = new Blacklist({
@@ -31,7 +31,7 @@ exports.signOut = async (req, res) => {
 
     try {
         await blacklistToken.save();
-        res.json({ message: "Logged out successfully" });
+        return res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error logging out" });
@@ -101,6 +101,9 @@ exports.signIn = async (req, res) => {
 exports.createUser = async (req, res) => {
 
     const { email, password, provider } = req.body;
+
+
+
 
     try {
         // Kontrollera om användaren redan finns
