@@ -39,7 +39,9 @@ exports.sortProducts = async (req, res) => {
         const search = req.query.search || "";
         const sort = req.query.sort || "averageRating";
         const category = req.query.category || "all";
-        const pickAndMix = req.query.pickAndMix || false;
+
+        /* om pickandmix har värdet true */
+        const pickAndMix = req.query.pickAndMix === "true";
 
         /* Om kategori är 'all', ta alla unika kategorier, annars filtrera på de valda */
         const categoriesToFilter = category === "all" ? uniqueCategories : req.query.category.split(",");
@@ -49,7 +51,7 @@ exports.sortProducts = async (req, res) => {
 
 
         /*  Skapa sorteringsobjekt för MongoDB, 
-            (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc)   }) */
+    (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc)   }) */
         let sortCriteria = {};
 
         sortArray.forEach(field => {
