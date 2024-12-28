@@ -4,8 +4,8 @@ const connectDatabase = require('./connectDatabase');
 const { allProduct, updateRating, sortProducts } = require('./controllers/products');
 const { authUser } = require('./middwares/auth');
 const { createUser, signIn, signOut } = require('./controllers/user');
-
 const { cleanUpBlacklist } = require('./middwares/cleanBlackList');
+const { totalPrice, cart, payment, getCart } = require('./controllers/cart');
 const app = express();
 
 
@@ -67,6 +67,27 @@ app.post("/signout", signOut);
 
 
 
+
+
+
+
+/* Cart */
+
+/* create payment intent  */
+
+app.post("/create-payment-intent",authUser, payment)
+
+
+
+
+/* add, remove, delete */
+app.post("/cart", authUser, cart);
+
+
+
+/* Get total price + discount */
+app.post("/totalPrice",  totalPrice);
+ 
 
 
 
