@@ -159,7 +159,8 @@ exports.cart = async (req, res) => {
       if (product.stockLevel > 0) {
         cart.products.push({
           productId: product._id,
-          name: product.name,  
+          name: product.name, 
+          price: product.price, 
           quantity: 1,
         });
         product.stockLevel -= 1;
