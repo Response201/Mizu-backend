@@ -1,37 +1,66 @@
 
+const mongoose = require("mongoose");
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
+const Receipt = require('../models/Receipts');
 require('dotenv').config()
 const stripe = require("stripe")(process.env.KEY);
 
-const calculateOrderAmount = (items) => {
-  const getAmount = Math.round(items * 100)
+
+
+const calculateOrderAmount = (totalPrice) => {
+  const getAmount = Math.round(totalPrice * 100); 
   return getAmount;
 };
-
-
-
 exports.payment = async (req, res) => {
+  const { totalPrice, discount, userId, cart } = req.body;
 
-  const { items } = req.body;
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: calculateOrderAmount(items),
-    currency: "sek",
-    automatic_payment_methods: {
-      enabled: true,
-    },
-  });
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-  });
+  try {
+    // Skapa betalningsintention med Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: calculateOrderAmount(totalPrice),
+      currency: "sek",
+      automatic_payment_methods: { enabled: true },
+    });
 
+    // Skapa kvitto med information från cart
+    const receipt = new Receipt({
+      userId: new mongoose.Types.ObjectId(userId),
+      products: cart.map(item => ({
+        productId: new mongoose.Types.ObjectId(item.productId), 
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      totalPrice: totalPrice,
+      discount: discount,
+    });
 
-}
+   
+    await receipt.save();
 
+    /* uppdatera cart => [] */
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userId: new mongoose.Types.ObjectId(userId) }, 
+      { products: [] },
+      { new: true }
+    );
 
+    await updatedCart.save();
 
+    /*  Skicka svar med clientSecret och kvitto */
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+      receipt: receipt, 
+    });
+  } catch (error) {
+    // Logga detaljer om felet
+    console.error("Error during payment processing:", error);
 
-
+    // Svara med specifik felmeddelande
+    res.status(500).send({ error: 'Payment failed', details: error.message });
+  }
+};
 
 
 
