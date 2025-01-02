@@ -13,7 +13,7 @@ const calculateOrderAmount = (totalPrice) => {
   return getAmount;
 };
 exports.payment = async (req, res) => {
-  const { totalPrice, discount, userId, cart } = req.body;
+  const { totalPrice } = req.body;
 
   try {
     // Skapa betalningsintention med Stripe
@@ -23,6 +23,29 @@ exports.payment = async (req, res) => {
       automatic_payment_methods: { enabled: true },
     });
 
+
+
+    /*  Skicka svar med clientSecret och kvitto */
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+   
+    });
+  } catch (error) {
+    // Logga detaljer om felet
+    console.error("Error during payment processing:", error);
+
+    // Svara med specifik felmeddelande
+    res.status(500).send({ error: 'Payment failed', details: error.message });
+  }
+};
+
+
+
+exports.paymentComplete = async (req, res) => {
+  const { totalPrice, discount, userId, cart } = req.body;
+
+  try {
+ 
     // Skapa kvitto med information från cart
     const receipt = new Receipt({
       userId: new mongoose.Types.ObjectId(userId),
@@ -50,8 +73,8 @@ exports.payment = async (req, res) => {
 
     /*  Skicka svar med clientSecret och kvitto */
     res.send({
-      clientSecret: paymentIntent.client_secret,
-      receipt: receipt, 
+      receipt
+   
     });
   } catch (error) {
     // Logga detaljer om felet
@@ -61,6 +84,17 @@ exports.payment = async (req, res) => {
     res.status(500).send({ error: 'Payment failed', details: error.message });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -151,7 +185,30 @@ exports.totalPrice = async (req, res) => {
 };
 
 
+exports.getCart = async (req, res) =>{
 
+  const { userId } = req.body;
+try {
+  let cart = await Cart.findOne({ userId });
+
+  if (!cart) {
+    cart = new Cart({ userId, products: [] });
+    await cart.save();
+  }
+
+  console.log(cart)
+
+  res.json( {"cart":cart });
+
+} catch (error) {
+  console.error("Error updating cart:", error);
+  res.status(500).json({"cart":[] });
+  
+}
+
+
+
+}
 
 
 exports.cart = async (req, res) => {

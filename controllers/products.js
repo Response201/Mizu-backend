@@ -26,8 +26,6 @@ exports.allProduct = async (req, res) => {
 
 
 
-
-/* Sort products */
 exports.sortProducts = async (req, res) => {
     try {
         // Hämta unika kategorier från produkter
@@ -37,7 +35,7 @@ exports.sortProducts = async (req, res) => {
         const page = parseInt(req.query.page) - 1 || 0;
         const limit = parseInt(req.query.limit) || 6;
         const search = req.query.search || "";
-        const sort = req.query.sort || "averageRating";
+        const sort = req.query.sort || "averageRating, price";
         const category = req.query.category || "all";
 
         /* om pickandmix har värdet true */
@@ -49,9 +47,8 @@ exports.sortProducts = async (req, res) => {
         /* Skapa sorteringsobjekt från query-parametern 'sort' */
         const sortArray = req.query.sort ? req.query.sort.split(",") : [sort];
 
-
-        /*  Skapa sorteringsobjekt för MongoDB, 
-    (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc)   }) */
+        /* Skapa sorteringsobjekt för MongoDB, 
+        (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc) }) */
         let sortCriteria = {};
 
         sortArray.forEach(field => {
@@ -62,17 +59,25 @@ exports.sortProducts = async (req, res) => {
             }
         });
 
-
-        if (!sortCriteria.price && !sortCriteria.averageRating) {
-            sortCriteria.averageRating = 1;
+        // Om pris saknas, sätt det till -1 (fallande ordning) och om betyg saknas, sätt det till -1 också (fallande ordning)
+        if (!sortCriteria.price) {
+            sortCriteria.price = -1;  
         }
 
+        if (!sortCriteria.averageRating) {
+            sortCriteria.averageRating = -1; 
+        }
 
+        // Om varken pris eller betyg är specificerade, sätt både till -1 för fallande ordning
+        if (!sortCriteria.price && !sortCriteria.averageRating) {
+            sortCriteria = { price: -1, averageRating: -1 };  
+        }
 
         /* Bygg matchningskriterier för aggregation */
         const matchCriteria = {
             name: { $regex: search, $options: "i" },
-            category: { $in: categoriesToFilter }
+            category: { $in: categoriesToFilter },
+            stockLevel: { $gte: 1 }  // Filtrera bort produkter med stockLevel < 1
         };
 
         // Lägg till pickAndMix-filter om true
@@ -80,12 +85,11 @@ exports.sortProducts = async (req, res) => {
             matchCriteria.pickAndMix = true;
         }
 
-
         /* Skapa sorteringsobjekt för MongoDB */
         const aggregationPipeline = [
-            /*   Matcha produkter med sökning och kategori */
+            /* Matcha produkter med sökning, kategori och stockLevel */
             {
-                $match: matchCriteria // Matcha produkter med sökning, kategori och pickAndMix
+                $match: matchCriteria
             },
             {
                 $sort: sortCriteria  // Sortera baserat på sorteringskriterier (pris, betyg)
@@ -98,16 +102,16 @@ exports.sortProducts = async (req, res) => {
             }
         ];
 
-        /*  Kör aggregation för att få sorterade produkter */
+        /* Kör aggregation för att få sorterade produkter */
         const getSearch = await Product.aggregate(aggregationPipeline);
 
         /* Räkna det totala antalet produkter som matchar sökning och filtrering för paginering */
         const total = await Product.countDocuments({
             name: { $regex: search, $options: "i" },
             category: { $in: categoriesToFilter },
+            stockLevel: { $gte: 1 },  // Endast produkter med stockLevel >= 1
             ...(pickAndMix ? { pickAndMix: true } : {})
         });
-
 
         /* Skapa ett svar med total antal produkter, nuvarande sida, limit och resultat */
         const response = {

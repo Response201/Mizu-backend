@@ -5,7 +5,7 @@ const { allProduct, updateRating, sortProducts } = require('./controllers/produc
 const { authUser } = require('./middwares/auth');
 const { createUser, signIn, signOut } = require('./controllers/user');
 const { cleanUpBlacklist } = require('./middwares/cleanBlackList');
-const { totalPrice, cart, payment, getCart } = require('./controllers/cart');
+const { totalPrice, cart, payment, getCart, paymentComplete } = require('./controllers/cart');
 const app = express();
 
 
@@ -65,7 +65,7 @@ app.post("/signin", signIn);
 /* sign out user */
 app.post("/signout", signOut);
 
-
+app.post("/checkLoginStatus", authUser)
 
 
 
@@ -77,12 +77,15 @@ app.post("/signout", signOut);
 
 app.post("/create-payment-intent",authUser, payment)
 
-
+app.post("/paymentComplete", authUser, paymentComplete)
 
 
 /* add, remove, delete */
 app.post("/cart", authUser, cart);
 
+
+
+app.post("/getcart", authUser, getCart)
 
 
 /* Get total price + discount */
