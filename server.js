@@ -6,6 +6,7 @@ const { authUser } = require('./middwares/auth');
 const { createUser, signIn, signOut } = require('./controllers/user');
 const { cleanUpBlacklist } = require('./middwares/cleanBlackList');
 const { totalPrice, cart, payment, getCart, paymentComplete } = require('./controllers/cart');
+const { getReceipts } = require('./controllers/receipts');
 const app = express();
 
 
@@ -93,6 +94,9 @@ app.post("/totalPrice",  totalPrice);
  
 
 
+/* Receipts */
+/* Get all receipts => user */
+app.post("/getReceipts", authUser, getReceipts)
 
 
 
