@@ -45,9 +45,11 @@ console.log(token)
 exports.signIn = async (req, res) => {
     const { email, password } = req.body;
 
+    const username = email.toLowerCase();
+
     try {
         /* Hitta användaren i databasen */
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ username });
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -102,12 +104,12 @@ exports.createUser = async (req, res) => {
 
     const { email, password, provider } = req.body;
 
-
+    const username = email.toLowerCase();
 
 
     try {
         // Kontrollera om användaren redan finns
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ username });
 
         if (existingUser) {
             return res.status(400).json({ message: "Something went wrong!" });
@@ -121,7 +123,7 @@ exports.createUser = async (req, res) => {
 
         // Skapa en ny användare
         const newUser = new User({
-            email,
+            username,
             password: hashedPassword,
             provider,
         });

@@ -190,30 +190,41 @@ exports.totalPrice = async (req, res) => {
 };
 
 
-exports.getCart = async (req, res) =>{
 
-  const { userId } = req.body;
-try {
+/* hitta eller skapa cart för användare */
+
+const findOrCreateCart = async (userId) => {
   let cart = await Cart.findOne({ userId });
 
   if (!cart) {
-    cart = new Cart({ userId, products: [] });
+    cart = new Cart({ 
+      userId, 
+      products: [], 
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dagar framåt 
+    });
     await cart.save();
   }
 
-  console.log(cart)
-
-  res.json( {"cart":cart });
-
-} catch (error) {
-  console.error("Error updating cart:", error);
-  res.status(500).json({"cart":[] });
-  
-}
+  return cart;
+};
 
 
 
-}
+
+
+
+exports.getCart = async (req, res) =>{
+  const { userId } = req.body;
+
+  try {
+    /* findcart funktion hittar eller skapar cart */
+    const cart = await findOrCreateCart(userId);
+    res.json({ cart });
+  } catch (error) {
+    console.error("Error updating cart:", error);
+    res.status(500).json({"cart":[] });
+  }
+};
 
 
 exports.cart = async (req, res) => {
@@ -226,12 +237,10 @@ exports.cart = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    /*  Hitta kundvagnen för användaren */
-    let cart = await Cart.findOne({ userId });
+  /* findcart funktion hittar eller skapar cart */
+    const cart = await findOrCreateCart(userId);
 
-    if (!cart) {
-      cart = new Cart({ userId, products: [] });
-    }
+  
 
     /* Hitta om produkten redan finns i kundvagnen */
     const productInCart = cart.products.find(item => item.productId.toString() === productId);
@@ -280,6 +289,9 @@ exports.cart = async (req, res) => {
       return res.status(400).json({ message: 'Invalid action or product not found in cart', cart });
     }
 
+/* Sätt nytt expire date(expiresAt) till en vecka framåt */
+cart.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    
     /*  Spara uppdaterad kundvagn */
     await cart.save();
 

@@ -22,6 +22,10 @@ const cartSchema = new mongoose.Schema({
         default: 1,
       },
       pickAndMix: { type: Boolean, default: false },
+      expiresAt: {
+        type: Date, 
+        default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), //  expireDate 7 dagar framåt 
+      },
     },
   ],
 

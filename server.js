@@ -1,12 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const connectDatabase = require('./connectDatabase');
+const cron = require('node-cron');
 const { allProduct, updateRating, sortProducts } = require('./controllers/products');
 const { authUser } = require('./middwares/auth');
 const { createUser, signIn, signOut } = require('./controllers/user');
-const { cleanUpBlacklist } = require('./middwares/cleanBlackList');
 const { totalPrice, cart, payment, getCart, paymentComplete } = require('./controllers/cart');
 const { getReceipts } = require('./controllers/receipts');
+const { cleanUpExpiredTokens } = require('./cronJobs/cleanUpExpiredTokens');
+const { cleanUpExpiredCarts } = require('./cronJobs/cleanUpExpiredCarts');
+
 const app = express();
 
 
@@ -17,12 +20,14 @@ connectDatabase();
 app.use(cors('*'));
 app.use(express.json());
 
-/*clean up Blacklist from old tokens  */
-app.use(cleanUpBlacklist);
+// Skapa cron-jobb för att rensa gamla tokens varje vecka
+cron.schedule('0 3 * * 1', cleanUpExpiredTokens);  // Körs varje måndag klockan 03:00
 
-
+// Skapa cron-jobb för att rensa gamla varukorgar dagligen vid midnatt
+cron.schedule('0 0 * * *', cleanUpExpiredCarts);  // Körs varje dag vid midnatt
 
 const port = process.env.PORT || 3000;
+
 
 
 
