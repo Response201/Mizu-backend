@@ -253,7 +253,7 @@ exports.cart = async (req, res) => {
           name: product.name, 
           price: product.price, 
           quantity: 1,
-          pickAndMix: item.pickAndMix,
+          pickAndMix: product.pickAndMix,
         });
         product.stockLevel -= 1;
         await product.save();
