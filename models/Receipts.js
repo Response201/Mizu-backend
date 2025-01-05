@@ -22,6 +22,7 @@ const receiptSchema = new mongoose.Schema({
          type: Number,
          default: 1,
        },
+       pickAndMix: { type: Boolean, default: false },
      },
    ],
     totalPrice: { type: Number, required: true },

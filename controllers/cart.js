@@ -44,6 +44,10 @@ exports.payment = async (req, res) => {
 exports.paymentComplete = async (req, res) => {
   const { totalPrice, discount, userId, cart } = req.body;
 
+  if (!userId || !Array.isArray(cart) || cart.length === 0) {
+    return res.status(400).send({ error: 'Invalid cart or user ID' });
+  }
+
   try {
  
     // Skapa kvitto med information från cart
@@ -54,6 +58,7 @@ exports.paymentComplete = async (req, res) => {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        pickAndMix: item.pickAndMix,
       })),
       totalPrice: totalPrice,
       discount: discount,
@@ -248,6 +253,7 @@ exports.cart = async (req, res) => {
           name: product.name, 
           price: product.price, 
           quantity: 1,
+          pickAndMix: item.pickAndMix,
         });
         product.stockLevel -= 1;
         await product.save();
