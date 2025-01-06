@@ -217,7 +217,7 @@ exports.getCart = async (req, res) =>{
   const { userId } = req.body;
 
   try {
-    /* findcart funktion hittar eller skapar cart */
+    /* findOrCreateCart funktion hittar eller skapar cart */
     const cart = await findOrCreateCart(userId);
     res.json({ cart });
   } catch (error) {
@@ -237,7 +237,7 @@ exports.cart = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-  /* findcart funktion hittar eller skapar cart */
+  /* findOrCreateCart funktion hittar eller skapar cart */
     const cart = await findOrCreateCart(userId);
 
   
