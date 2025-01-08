@@ -12,7 +12,7 @@ const cartSchema = new mongoose.Schema({
       productId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
-        unique: true
+     
       },
       name:{
         type:String
@@ -32,6 +32,7 @@ const cartSchema = new mongoose.Schema({
     default: () => new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), //  expireDate 24 timmar framåt 
   },
 });
+
 
 const Cart = mongoose.model('Cart', cartSchema);
 module.exports = Cart;
