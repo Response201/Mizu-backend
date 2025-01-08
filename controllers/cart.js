@@ -290,6 +290,13 @@ exports.cart = async (req, res) => {
       cart.products = cart.products.filter(item => item.productId.toString() !== productId);
       product.stockLevel += productInCart.quantity;  
       await product.save();
+    }
+    else if(action === 'delete' && productInCart.length === 0){
+
+      if (cart.products.length === 0) {
+        cart.products = []; 
+      }
+
     } 
     
     
