@@ -238,7 +238,7 @@ exports.cart = async (req, res) => {
     }
 
   /* findOrCreateCart funktion hittar eller skapar cart */
-    const cart = await Cart.findOne({ userId });
+    const cart = await findOrCreateCart(userId);
 
   
 
