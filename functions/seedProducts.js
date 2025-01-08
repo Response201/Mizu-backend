@@ -10,7 +10,18 @@ const seedProducts = async () => {
   try {
 
     const products = [
- 
+      {
+        name: "TEST TOTALT 10 PRODUKTER",
+        description: "Test test",
+        image: "https://i.ibb.co/sRxRDnJ/Product1.png",
+        primaryColor: "#d5c5b4",
+        price: 300,
+        pickAndMix: true,
+        stockLevel: 10,
+        category: "face mask",
+        ratings: [],
+        averageRating: 0,
+      },
       {
         name: "Divine Hyper Essence",
         description: "A luxurious face mask that deeply hydrates and revitalizes your skin, leaving it radiant and smooth.",

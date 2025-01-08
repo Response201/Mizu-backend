@@ -247,7 +247,7 @@ exports.cart = async (req, res) => {
 
     if (action === 'add' && productInCart) {
       /*  Om produkten finns, öka kvantiteten om lager finns */
-      if (product.stockLevel > 0) {
+      if (product.stockLevel >= 1) {
         productInCart.quantity += 1;
         product.stockLevel -= 1;
         /*   Spara uppdaterad produkt med nya lager */
@@ -255,8 +255,10 @@ exports.cart = async (req, res) => {
       } else {
         return res.status(400).json({ message: 'Stock level is 0, cannot add more', cart });
       }
-    } else if (action === 'add' && !productInCart) {
-      if (product.stockLevel > 0) {
+    } 
+    
+    else if (action === 'add' && !productInCart) {
+      if (product.stockLevel  >= 1) {
         cart.products.push({
           productId: product._id,
           name: product.name, 
@@ -266,26 +268,32 @@ exports.cart = async (req, res) => {
         });
         product.stockLevel -= 1;
         await product.save();
+
+        
       } else {
         return res.status(400).json({ message: 'Stock level is 0, cannot add product', cart });
       }
-    } else if (action === 'remove' && productInCart) {
+    }
+    
+    
+    else if (action === 'remove' && productInCart) {
       /*  Om produkten finns, minska kvantiteten */
-      if (productInCart.quantity > 1) {
+      if (productInCart.quantity >= 1) {
         productInCart.quantity -= 1;
         product.stockLevel += 1;  // Återställ lager
-      } else {
-        /*   Om kvantiteten är 1, ta bort produkten från kundvagnen */
-        cart.products = cart.products.filter(item => item.productId.toString() !== productId);
-        product.stockLevel += 1;  // Återställ lager
-      }
+      } 
       await product.save();
+
+
     } else if (action === 'delete' && productInCart) {
       /*  Om action är 'delete', ta bort produkten från kundvagnen */
       cart.products = cart.products.filter(item => item.productId.toString() !== productId);
       product.stockLevel += productInCart.quantity;  
       await product.save();
-    } else {
+    } 
+    
+    
+    else {
       return res.status(400).json({ message: 'Invalid action or product not found in cart', cart });
     }
 
