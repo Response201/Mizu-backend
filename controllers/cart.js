@@ -291,11 +291,11 @@ exports.cart = async (req, res) => {
       product.stockLevel += productInCart.quantity;  
       await product.save();
     }
-    else if(action === 'delete' && productInCart.length === 0){
+    else if(action === 'delete' && productInCart.length === 1){
 
-      if (cart.products.length === 0) {
+      
         cart.products = []; 
-      }
+      
 
     } 
     
