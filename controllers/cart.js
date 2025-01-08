@@ -232,7 +232,7 @@ exports.cart = async (req, res) => {
 
   try {
     /* Hitta produkten i databasen */
-    const product = await Product.findById(productId);
+    const product = await Product.findById({_id: productId});
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -269,7 +269,7 @@ exports.cart = async (req, res) => {
         product.stockLevel -= 1;
         await product.save();
 
-        
+
       } else {
         return res.status(400).json({ message: 'Stock level is 0, cannot add product', cart });
       }
