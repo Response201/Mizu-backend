@@ -25,6 +25,28 @@ exports.allProduct = async (req, res) => {
 
 
 
+/* get one product */
+
+exports.product = async (req, res) => {
+    try {
+        const productId = req.query.id;
+        const product = await Product.find({_id:productId});
+
+        /* om inga produkter finns skickas status 404 error */
+        if (!product) {
+            return res.status(404).json({ message: "No Products found" });
+        } else {
+            /*  om produkter hittas skickas de */
+            res.json({ product: product });
+        }
+    } catch (error) {
+
+        res.json({ error: 'Something went wrong' });
+    }
+};
+
+
+
 
 exports.sortProducts = async (req, res) => {
     try {

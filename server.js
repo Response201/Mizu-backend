@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDatabase = require('./connectDatabase');
 const cron = require('node-cron');
-const { allProduct, updateRating, sortProducts } = require('./controllers/products');
+const { allProduct, updateRating, sortProducts, product } = require('./controllers/products');
 const { authUser } = require('./middwares/auth');
 const { createUser, signIn, signOut } = require('./controllers/user');
 const { totalPrice, cart, payment, getCart, paymentComplete } = require('./controllers/cart');
@@ -45,6 +45,9 @@ app.get("/", (req, res) => {
 /* get all products */
 app.get("/allProducts", allProduct);
 
+
+/* one product */
+app.get("/product", product);
 
 /* Update rating */
 
