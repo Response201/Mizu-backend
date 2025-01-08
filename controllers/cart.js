@@ -200,7 +200,7 @@ const findOrCreateCart = async (userId) => {
     cart = new Cart({ 
       userId, 
       products: [], 
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dagar framåt 
+      expiresAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)// 24 timmar framåt 
     });
     await cart.save();
   }
@@ -289,8 +289,8 @@ exports.cart = async (req, res) => {
       return res.status(400).json({ message: 'Invalid action or product not found in cart', cart });
     }
 
-/* Sätt nytt expire date(expiresAt) till en vecka framåt */
-cart.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+// Sätt nytt expire date (expiresAt) till 24 timmar framåt
+cart.expiresAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
     
     /*  Spara uppdaterad kundvagn */
     await cart.save();

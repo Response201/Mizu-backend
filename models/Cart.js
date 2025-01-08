@@ -28,7 +28,7 @@ const cartSchema = new mongoose.Schema({
   ],
   expiresAt: {
     type: Date, 
-    default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), //  expireDate 7 dagar framåt 
+    default: () => new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), //  expireDate 24 timmar framåt 
   },
 });
 
