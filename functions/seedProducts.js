@@ -10,6 +10,7 @@ const seedProducts = async () => {
   try {
 
     const products = [
+ 
       {
         name: "Divine Hyper Essence",
         description: "A luxurious face mask that deeply hydrates and revitalizes your skin, leaving it radiant and smooth.",

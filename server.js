@@ -24,7 +24,7 @@ app.use(express.json());
 cron.schedule('0 3 * * 1', cleanUpExpiredTokens);  // Körs varje måndag klockan 03:00
 
 // Skapa cron-jobb för att rensa gamla varukorgar dagligen vid midnatt
-cron.schedule('0 0 * * *', cleanUpExpiredCarts);  // Körs varje dag vid midnatt
+cron.schedule('53 18 * * *', cleanUpExpiredCarts);  // Körs varje dag vid midnatt
 
 const port = process.env.PORT || 3000;
 

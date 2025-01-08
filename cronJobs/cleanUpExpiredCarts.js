@@ -30,7 +30,7 @@ exports.cleanUpExpiredCarts = async () => {
         }
         
         // Ta bort varukorgen från databasen efter att produkterna har återställts
-        await Cart.findByIdAndDelete(cart._id);
+        await Cart.findByIdAndDelete(cart.userId);
       }
   
       console.log(`${expiredCarts.length} förfallna varukorgar rensade.`);
