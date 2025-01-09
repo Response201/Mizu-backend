@@ -278,10 +278,15 @@ exports.cart = async (req, res) => {
     
     else if (action === 'remove' && productInCart) {
       /*  Om produkten finns, minska kvantiteten */
-      if (productInCart.quantity >= 1) {
+      if (productInCart.quantity >= 2) {
         productInCart.quantity -= 1;
-        product.stockLevel += 1;  // Återställ lager
+        product.stockLevel += 1;  
       } 
+      else {
+  
+        console.log('Kvantiteten är redan 1, ingen åtgärd vidtas.');
+    }
+
       await product.save();
 
 
