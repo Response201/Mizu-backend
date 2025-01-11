@@ -1,46 +1,51 @@
 const mongoose = require("mongoose");
 
-const Product = require('../models/Product');
+const Product = require('../models/Products');
 
 
 
-/* get all Products */
+/* Get all products */
 exports.allProduct = async (req, res) => {
     try {
-
+        // Fetch all products from the database
         const allProducts = await Product.find();
 
-        /* om inga produkter finns skickas status 404 error */
+
         if (!allProducts) {
+            //If no products are found, send a 404 error response
             return res.status(404).json({ message: "No Products found" });
         } else {
-            /*  om produkter hittas skickas de */
+            // If products are found, send them back in the response 
             res.json({ products: allProducts });
         }
     } catch (error) {
-
+        // Handle and return errors
         res.json({ error: 'Something went wrong' });
     }
 };
 
 
 
-/* get one product */
 
+
+/* Get one product */
 exports.product = async (req, res) => {
     try {
+        // Get the productId from the query parameters
         const productId = req.query.id;
-        const product = await Product.find({_id:productId});
+        // Find the product in the database using the productId
+        const product = await Product.findOne({ _id: productId });
 
-        /* om inga produkter finns skickas status 404 error */
+
         if (!product) {
+            // If no product is found, send a 404 error response 
             return res.status(404).json({ message: "No Products found" });
         } else {
-            /*  om produkter hittas skickas de */
+            //  If the product is found, send it back in the response
             res.json({ product: product });
         }
     } catch (error) {
-
+        // Handle and return errors
         res.json({ error: 'Something went wrong' });
     }
 };
@@ -48,31 +53,30 @@ exports.product = async (req, res) => {
 
 
 
+
+/* Sort products */
 exports.sortProducts = async (req, res) => {
     try {
-        // Hämta unika kategorier från produkter
+        // Fetch unique product categories from the database
         const uniqueCategories = await Product.distinct("category");
 
-        // Hämta query-parametrar från request
+        // Retrieve query parameters, applying default values if not provided
         const page = parseInt(req.query.page) - 1 || 0;
         const limit = parseInt(req.query.limit) || 6;
         const search = req.query.search || "";
         const sort = req.query.sort || "averageRating, price";
         const category = req.query.category || "all";
+        const pickAndMix = req.query.pickAndMix === "true" || false;
 
-        /* om pickandmix har värdet true */
-        const pickAndMix = req.query.pickAndMix === "true";
-
-        /* Om kategori är 'all', ta alla unika kategorier, annars filtrera på de valda */
+        // If category is 'all', take all unique categories, otherwise filter by selected categories 
         const categoriesToFilter = category === "all" ? uniqueCategories : req.query.category.split(",");
 
-        /* Skapa sorteringsobjekt från query-parametern 'sort' */
+        // Create sorting array from the query parameter 'sort'
         const sortArray = req.query.sort ? req.query.sort.split(",") : [sort];
 
-        /* Skapa sorteringsobjekt för MongoDB, 
-        (tex: {price: 1, Stigande sortering (asc), rating: -1 Fallande sortering (desc) }) */
+        /* Create sort object for MongoDB, (e.g., {price: 1 for ascending, rating: -1 for descending} */
         let sortCriteria = {};
-
+        // Loop through the sorting fields and construct the MongoDB sort object
         sortArray.forEach(field => {
             const [key, order] = field.split(":");
             // Sort by price or averageRating, defaulting to ascending if no order specified
@@ -81,72 +85,71 @@ exports.sortProducts = async (req, res) => {
             }
         });
 
-        // Om pris saknas, sätt det till -1 (fallande ordning) och om betyg saknas, sätt det till -1 också (fallande ordning)
+        //  If no sorting criteria for price, set it to descending order (-1)
         if (!sortCriteria.price) {
-            sortCriteria.price = -1;  
+            sortCriteria.price = -1;
         }
-
+        // If no sorting criteria for averageRating, set it to descending order (-1)
         if (!sortCriteria.averageRating) {
-            sortCriteria.averageRating = -1; 
+            sortCriteria.averageRating = -1;
         }
 
-        // Om varken pris eller betyg är specificerade, sätt både till -1 för fallande ordning
+        // If neither price nor averageRating is specified, set both to descending order
         if (!sortCriteria.price && !sortCriteria.averageRating) {
-            sortCriteria = { price: -1, averageRating: -1 };  
+            sortCriteria = { price: -1, averageRating: -1 };
         }
 
-        /* Bygg matchningskriterier för aggregation */
+        // Build the match criteria for the aggregation query
         const matchCriteria = {
-            name: { $regex: search, $options: "i" },
-            category: { $in: categoriesToFilter },
-            stockLevel: { $gte: 1 }  // Filtrera bort produkter med stockLevel < 1
+            name: { $regex: search, $options: "i" }, // Search case-insensitive by product name -  regardless of whether the letters are uppercase or lowercase 
+            category: { $in: categoriesToFilter },   // Filter products by selected categories (either specific categories or all)
+            stockLevel: { $gte: 1 } // Filter out products that have a stock level less than 1
         };
 
-        // Lägg till pickAndMix-filter om true
+        // Add the pickAndMix filter if it is set to true
         if (pickAndMix) {
             matchCriteria.pickAndMix = true;
         }
 
-        /* Skapa sorteringsobjekt för MongoDB */
+        // Create MongoDB aggregation pipeline
         const aggregationPipeline = [
-            /* Matcha produkter med sökning, kategori och stockLevel */
+
             {
-                $match: matchCriteria
+                $match: matchCriteria    // Match products based on search, category, and stock level
             },
             {
-                $sort: sortCriteria  // Sortera baserat på sorteringskriterier (pris, betyg)
+                $sort: sortCriteria  // Apply sorting based on price and rating
             },
             {
-                $skip: page * limit
+                $skip: page * limit   // Skip the products based on the page number for pagination
             },
             {
-                $limit: limit // Limit => antal produkter
+                $limit: limit // Limit the number of products per page
             }
         ];
-
-        /* Kör aggregation för att få sorterade produkter */
+        // Execute the aggregation pipeline to get sorted and paginated products
         const getSearch = await Product.aggregate(aggregationPipeline);
 
-        /* Räkna det totala antalet produkter som matchar sökning och filtrering för paginering */
+        //  Count the total number of products that match the search and filters for pagination
         const total = await Product.countDocuments({
-            name: { $regex: search, $options: "i" },
-            category: { $in: categoriesToFilter },
-            stockLevel: { $gte: 1 },  // Endast produkter med stockLevel >= 1
-            ...(pickAndMix ? { pickAndMix: true } : {})
+            name: { $regex: search, $options: "i" }, // Search case-insensitive by product name -  regardless of whether the letters are uppercase or lowercase 
+            category: { $in: categoriesToFilter },  // Filter products by selected categories (either specific categories or all)
+            stockLevel: { $gte: 1 }, // Filter out products that have a stock level less than 1
+            ...(pickAndMix ? { pickAndMix: true } : {})  // Conditionally add pickAndMix filter
         });
 
-        /* Skapa ett svar med total antal produkter, nuvarande sida, limit och resultat */
+        // Create a response object containing pagination details and filtered product
         const response = {
-            total,
-            page: page + 1,
-            limit,
-            products: getSearch,
-            categories: uniqueCategories
+            total, // Total number of matching products
+            page: page + 1, // Current page number (1-indexed for user-friendly display)
+            limit,  // Number of products per page
+            products: getSearch,  // List of products based on the search and filter criteria
+            categories: uniqueCategories  // List of available categories 
         };
-
+        // Return the response with sorted and paginated products
         res.status(200).json(response);
     } catch (error) {
-        console.error(error);
+        // Handle and return errors
         res.status(500).json({ error: 'Something went wrong', details: error.message });
     }
 };
@@ -155,62 +158,69 @@ exports.sortProducts = async (req, res) => {
 
 
 
-/* Update rating */
+
+
+/* Update product rating */
 exports.updateRating = async (req, res) => {
     const { id, userId, newRating } = req.body;
 
+    // Check if all required fields are provided
     if (!id || !userId || newRating == null) {
         return res.status(400).json({
             message: "Product ID, User ID, and Rating are required",
         });
     }
+    // Validate the provided ids
     if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ message: "Invalid Product ID or User ID" });
     }
 
 
     try {
-        /* Hitta produkten baserat på dess ID */
+        // Find the product by its id
         const product = await Product.findById(id);
 
+        // If product not found, return an error
         if (!product) {
+
             return res.status(404).json({ message: "Product not found" });
         }
 
-        /* Kontrollera om användaren redan har ett betyg */
+        // Check if the user has already rated the product
         const existingRatingIndex = product.ratings.findIndex(
             (rating) => rating.userId.toString() === userId
         );
 
         if (existingRatingIndex >= 0) {
-            /* Uppdatera användarens befintliga betyg */
+            // Update existing rating if user already rated
             product.ratings[existingRatingIndex].rating = newRating;
         } else {
-            /*  Lägg till ett nytt betyg för användaren */
+            // If the user hasn't rated the product before, add a new rating
             product.ratings.push({ userId, rating: newRating });
         }
 
 
-        /* Funktion för att beräkna medelbetyget */
+        // Function to calculate the average rating of a product 
         const newAverageRating = (ratings) => {
-            if (ratings.length === 0) return 0;  // Om inga betyg finns, returnera 0
-            const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
-            return totalRating / ratings.length;
+            if (ratings.length === 0) return 0;  // Return 0 if no ratings exist
+            const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);  // Calculate the total sum of all ratings and then divide by the number of ratings to get the average
+            return totalRating / ratings.length;  // Return the calculated average rating
         };
 
-        /* Uppdatera produktens genomsnittliga betyg med det nya värdet */
+        // Update product's average rating
         const averageRating = newAverageRating(product.ratings);
         product.averageRating = averageRating;
 
-        /* Spara den uppdaterade produkten */
+        // Save the updated product with the new rating and average rating
         await product.save();
 
+        // Return success message with the updated product
         res.json({
             message: "Rating updated successfully",
             product: product,
         });
     } catch (error) {
-        console.error(error);
+        // Handle and return errors
         res.status(500).json({
             message: "Something went wrong",
         });

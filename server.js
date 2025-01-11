@@ -13,20 +13,20 @@ const { cleanUpExpiredCarts } = require('./cronJobs/cleanUpExpiredCarts');
 const app = express();
 
 
-/* connect to database */
+/* Connect to database */
 connectDatabase();
 
-/*  Middleware setup - cors and json */
+/* setup - cors and json */
 app.use(cors('*'));
 app.use(express.json());
 
-// Skapa cron-jobb för att rensa gamla tokens varje vecka
-cron.schedule('0 3 * * 1', cleanUpExpiredTokens);  // Körs varje måndag klockan 03:00
+// Schedule a weekly cron job to clean up expired tokens every Monday at 03:00
+cron.schedule('0 3 * * 1', cleanUpExpiredTokens);
 
-// Skapa cron-jobb för att rensa gamla varukorgar dagligen vid midnatt
-cron.schedule('10 19 * * *', cleanUpExpiredCarts);  // Körs varje dag vid midnatt
+// Schedule a daily cron job to clean up expired carts at 00:00
+cron.schedule('0 0 * * *', cleanUpExpiredCarts);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000; // Set the server's port from environment or default to 3000
 
 
 
@@ -35,7 +35,7 @@ const port = process.env.PORT || 3000;
 /* Endpoints */
 
 
-/* start */
+/* Start */
 app.get("/", (req, res) => {
     res.send("Welcome to this API");
 });
@@ -43,38 +43,34 @@ app.get("/", (req, res) => {
 
 /* Products */
 
-/* get all products */
+/* Get all products */
 app.get("/allProducts", allProduct);
 
-
-/* one product */
+/* Get one product */
 app.get("/product", product);
 
-/* Update rating */
+/* Sort products */
+app.get("/sortProducts", sortProducts);
 
+/* Update product rating */
 app.put("/updateRating", authUser, updateRating);
 
-/* Sort products */
-
-app.get("/sortProducts", sortProducts)
 
 
 
 
 /* User */
 
-/* create user */
-app.post("/createUser", createUser);
-
-
-
-/* sign in user */
-app.post("/signin", signIn);
-
-
-/* sign out user */
+/* Sign out user */
 app.post("/signout", signOut);
 
+/* Sign in user */
+app.post("/signin", signIn);
+
+/* Create user */
+app.post("/createUser", createUser);
+
+/* Auth user */
 app.post("/checkLoginStatus", authUser)
 
 
@@ -83,30 +79,28 @@ app.post("/checkLoginStatus", authUser)
 
 /* Cart */
 
-/* create payment intent  */
+/* Create a payment */
+app.post("/create-payment-intent", authUser, payment)
 
-app.post("/create-payment-intent",authUser, payment)
-
+/* Finalizes a payment */
 app.post("/paymentComplete", authUser, paymentComplete)
 
+/* Get total price + discount */
+app.post("/totalPrice", totalPrice);
 
-/* add, remove, delete */
+/* Get user cart */
+app.post("/getcart", authUser, getCart)
+
+/* Update cart - add, retrieve, or delete products based on user action */
 app.post("/cart", authUser, cart);
 
 
 
-app.post("/getcart", authUser, getCart)
-
-
-/* Get total price + discount */
-app.post("/totalPrice",  totalPrice);
- 
-
 
 /* Receipts */
-/* Get all receipts => user */
-app.post("/getReceipts", authUser, getReceipts)
 
+/* Get user receipts */
+app.post("/getReceipts", authUser, getReceipts)
 
 
 /* Start server */

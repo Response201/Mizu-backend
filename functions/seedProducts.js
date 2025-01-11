@@ -1,4 +1,4 @@
-const Product = require('../models/Product');
+const Product = require('../models/Products');
 
 
 
@@ -191,21 +191,28 @@ const seedProducts = async () => {
         averageRating: 0,
       },
     ];
-    
+
 
 
     for (const product of products) {
+
+     // Check if a product with the same name exists
       const existingProduct = await Product.findOne({ name: product.name });
+
       if (!existingProduct) {
+        // If the product does not exist, create a new product entry in the database
         await Product.create(product);
         console.log(`Inserted: ${product.name}`);
+
       } else {
+        
+        // If the product already exists, log that it was found
         console.log(`Already exists: ${product.name}`);
       }
     }
 
   } catch (err) {
-
+    // If any error occurs during the process, log it
     console.error("Error seeding products:", err);
   }
 };

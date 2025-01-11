@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+// Define schema
 const cartSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -23,7 +23,6 @@ const cartSchema = new mongoose.Schema({
         default: 1,
       },
       pickAndMix: { type: Boolean, default: false },
-    
     },
     
   ],
@@ -33,6 +32,7 @@ const cartSchema = new mongoose.Schema({
   },
 });
 
-
-const Cart = mongoose.model('Cart', cartSchema);
-module.exports = Cart;
+// Create a model from the schema for database operations
+const Carts = mongoose.model('Carts', cartSchema);
+// Export the model to use it in other parts of the application
+module.exports = Carts;

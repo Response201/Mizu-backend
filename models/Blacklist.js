@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Define schema
 const blacklistSchema = new mongoose.Schema({
   token: {
     type: String,
@@ -15,6 +16,7 @@ const blacklistSchema = new mongoose.Schema({
     required: true,
   },
 });
-
+// Create a model from the schema for database operations
 const Blacklist = mongoose.model('Blacklist', blacklistSchema);
+// Export the model to use it in other parts of the application
 module.exports = Blacklist;

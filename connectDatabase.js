@@ -12,11 +12,11 @@ function connectDatabase() {
         useUnifiedTopology: true
     })
         .then(() => {
-            console.log("Connected to MongoDB!!!");
-            seedProducts()
+            console.log("Connected to MongoDB!!!"); // Log successful connection
+            seedProducts()  // Seed initial products into the database
         })
         .catch(err => {
-            console.error("MongoDB connection error:", err);
+            console.error("MongoDB connection error:", err); // Log any connection errors
         });
 }
 

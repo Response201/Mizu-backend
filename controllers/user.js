@@ -10,30 +10,32 @@ const Blacklist = require("../models/Blacklist")
 
 
 
-/* sign out */
+/* Sign out */
 exports.signOut = async (req, res) => {
+    // Extract the token from the Authorization header (remove 'Bearer ' prefix)
     const token = req.header("Authorization").slice(7);
 
-console.log(token)
-    /*   Sätt en utgångstid för tokenen*/
 
+    // Set the token expiration time 
     const expiresAt = new Date();
 
-    /* Lägg till 1 timma till expiresAt för att hantera eventuella fel som kan uppstå. När ändringar sedan görs i schemat och det gått mer än 1 timma kommer token att raderas */
-
+    // Add 1 hour to the expiration time to handle any potential delays.
+    // This ensures the token is invalidated after more than 1 hour.
     expiresAt.setHours(expiresAt.getHours() + 1);
 
-    /*  Skapa en ny post i blacklisten med tokenen och dess utgångstid. */
+    // Create a new entry in the blacklist with the token and its expiration time
     const blacklistToken = new Blacklist({
         token,
         expiresAt
     });
 
     try {
+        // Save the blacklist entry to invalidate the token
         await blacklistToken.save();
+        // Respond with a success message
         return res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
-        console.error(error);
+        // Handle and return errors
         res.status(500).json({ message: "Error logging out" });
     }
 
@@ -41,56 +43,63 @@ console.log(token)
 
 
 
-/* sign in */
+/* Sign in */
 exports.signIn = async (req, res) => {
     const { email, password } = req.body;
 
+    // Convert email to lowercase to standardize the search
     const username = email.toLowerCase();
 
     try {
-        /* Hitta användaren i databasen */
-        const user = await User.findOne({ email:username });
+        // Find the user in the database using the provided email
+        const user = await User.findOne({ email: username });
 
         if (!user) {
+            // If the user does not exist, return an error
             return res.status(404).json({ message: "User not found" });
         }
 
-        const id = user._id;
-        /*  Kontrollera om användaren är registrerad med google */
+        const id = user._id;; // Extract the user's id for sending in the response
+
+
+        // Check if the user is registered through Google (OAuth)
         if (user.provider !== "default") {
+            // If the user logged in with Google, create a JWT token 
             const token = jwt.sign(
                 { userId: user._id, email: user.email },
                 process.env.TOKEN_SECRET,
                 { expiresIn: '1h' }
             );
+            // then return success response with token and userId
             return res.status(200).json({ message: "Login with google", token, "userId": id });
         }
 
         if (!password) {
-
+            // If no password is provided, return an error
             return res.status(404).json({ message: "No password" });
 
         }
 
 
 
-        /*  Verifiera lösenordet */
+        // Verify the provided password against the stored hashed password
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
+            // If the password is incorrect, return an error
             return res.status(401).json({ message: "Invalid credentials" });
         }
-        // Skapa JWT-token
+        // Create a JWT token if credentials are valid
         const token = jwt.sign(
             { userId: user._id, email: user.email },
-            process.env.TOKEN_SECRET, // Hemlig nyckel
-            { expiresIn: '1h' } // Håller en timme (1 timme)
+            process.env.TOKEN_SECRET, // Secret key to sign the token
+            { expiresIn: '1h' } // Token expiration time (1 hour)
         );
 
 
-        /* Om allt stämmer, returnera framgångsmeddelande */
+        // If everything is correct, return success response with token and userId
         res.json({ message: "Login successful!", "token": token, "userId": id });
     } catch (error) {
-        console.error("Error during login:", error);
+        // Handle and return errors
         res.status(500).json({ message: "Something went wrong" });
     }
 
@@ -98,42 +107,43 @@ exports.signIn = async (req, res) => {
 
 
 
-/* create user */
+/* Create user */
 
 exports.createUser = async (req, res) => {
-
     const { email, password, provider } = req.body;
 
+    // Normalize email to lowercase to standardize the input
     const username = email.toLowerCase();
 
 
     try {
-        // Kontrollera om användaren redan finns
-        const existingUser = await User.findOne({email:username });
+        // Check if the user already exists with the provided email
+        const existingUser = await User.findOne({ email: username });
 
         if (existingUser) {
+            // If user exists, return an error message
             return res.status(400).json({ message: "Something went wrong!" });
         }
 
-        // Kryptera lösenordet om det är en standardregistrering
+        // Encrypt the password if it's a default registration 
         let hashedPassword = null;
         if (provider === "default" && password) {
-            hashedPassword = await bcrypt.hash(password, 12);
+            hashedPassword = await bcrypt.hash(password, 12); // Hash the password with bcrypt
         }
 
-        // Skapa en ny användare
+        // Create a new user 
         const newUser = new User({
-            email:username,
+            email: username,
             password: hashedPassword,
             provider,
         });
 
-        // Spara användaren
+        // Save the new user to the database
         await newUser.save();
-
+        // Return success response
         res.status(201).json({ message: "Registration successful!" });
     } catch (error) {
-        console.error("Error during user creation:", error);
+        // Handle and return errors
         res.status(500).json({ message: "Something went wrong" });
     }
 
