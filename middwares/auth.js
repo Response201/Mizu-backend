@@ -9,7 +9,7 @@ exports.authUser = async (req, res, next) => {
     // Extract the token from the Authorization header  
     let tmp = req.header("Authorization");
 
-   //  Extract the token by removing the "Bearer " prefix, if present 
+    //  Extract the token by removing the "Bearer "  => "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
     const token = tmp ? tmp.slice(7, tmp.length) : "";
 
     if (!token) {
@@ -25,7 +25,7 @@ exports.authUser = async (req, res, next) => {
       return res.status(403).json({ message: "Invalid Authorization. Please log in" });
     }
 
-    // verify the token's validity and decode the user information
+    // jsonwebtoken verify the token's validity and decode the user information
     jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
       if (err) {
         // Respond with an error if the token is invalid or expired
@@ -34,11 +34,12 @@ exports.authUser = async (req, res, next) => {
 
       // attach the decoded user information to the request object
       req.user = user;
+
       // Proceed to controller(e.g getCart, app.post("/getcart", authUser, getCart) )
       next();
     });
   } catch (error) {
-      // Handle and return errors
+    // Handle and return errors
     res.status(500).json({ message: error.message });
   }
 };
