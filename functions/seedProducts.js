@@ -11,7 +11,7 @@ const seedProducts = async () => {
 
     const products = [
 
-      
+    
         {
           "name": "Hydrating Cream",
           "description": "An intensely moisturizing face cream that helps maintain the skin's natural hydration balance, leaving it soft and smooth.",
@@ -24,18 +24,7 @@ const seedProducts = async () => {
           "ratings": [],
           "averageRating": 0
         },
-        {
-          "name": "Gentle Face Cream",
-          "description": "A soothing face cream that nourishes and hydrates your skin, promoting a soft, healthy, and radiant complexion.",
-          "image": "https://i.ibb.co/1f6pZWF/facecream.png",
-          "primaryColor": "129, 193, 185",
-          "price": 599,
-          "pickAndMix": true,
-          "stockLevel": 10,
-          "category": "face cream",
-          "ratings": [],
-          "averageRating": 0
-        },
+  
         {
           "name": "Brightening Vitamin C Cream",
           "description": "A nourishing face cream with vitamin C to brighten and even out skin tone.",
