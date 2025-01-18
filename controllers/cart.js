@@ -128,23 +128,9 @@ exports.totalPrice = async (req, res) => {
     let faceCreams = [];
     let faceMasks = [];
     let totalPrice = 0;
-    let groupedProductsList = [];
+   
 
-    // Function to add a product to the grouped products list
-    const addToList = (productId) => {
-      const existingProduct = groupedProductsList.find(p => p.productId === productId);
 
-      if (existingProduct) {
-        // If product exists, increment its quantity
-        existingProduct.quantity += 1;
-      } else {
-        // Otherwise, add it to the grouped products list
-        groupedProductsList.push({
-          productId: productId,
-          quantity: 1,
-        });
-      }
-    };
 
 
 
@@ -171,17 +157,17 @@ exports.totalPrice = async (req, res) => {
         if (item.category === "serum" && item.pickAndMix) {
           for (let i = 0; i < product.quantity; i++) {
             serums.push(item); // Add to serums array
-            addToList(item._id)
+           
           }
         } else if (item.category === "face cream" && item.pickAndMix) {
           for (let i = 0; i < product.quantity; i++) {
             faceCreams.push(item); // Add to faceCreams array
-             addToList(item._id)
+            
           }
         } else if (item.category === "face mask" && item.pickAndMix) {
           for (let i = 0; i < product.quantity; i++) {
             faceMasks.push(item); // Add to faceMasks array
-           addToList(item._id)
+           
           }
         }
       }
@@ -192,10 +178,14 @@ serums.sort((a, b) => b.price - a.price);
 faceCreams.sort((a, b) => b.price - a.price);
 faceMasks.sort((a, b) => b.price - a.price);
 
+
+
+
+
     // Group products into sets of three: one serum, one face cream, and one face mask
     let groups = [];
-
-
+    let groupedProductsList = [];
+   
 
     // Find the smallest length among the three arrays (serums, face creams, and face masks)
     // This ensures the loop only runs as many times as there are complete sets of products
@@ -224,6 +214,34 @@ faceMasks.sort((a, b) => b.price - a.price);
 
       // Calculate the total price of the group
       const groupPrice = group.serum.price + group.faceCream.price + group.faceMask.price;
+
+
+      const addProduct = (product) => {
+        // Kolla om produkten redan finns i groupedProductsList
+        let existingProduct = groupedProductsList.find(p => p.productId === product.id);
+        
+        if (existingProduct) {
+          // Om produkten finns, öka kvantiteten
+          existingProduct.quantity += 1;
+        } else {
+          // Om produkten inte finns, lägg till den med quantity 1
+          groupedProductsList.push({
+            productId: product.id,
+            quantity: 1
+          });
+        }
+      };
+    
+      // Lägg till serum, faceCream och faceMask i groupedProductsList
+      addProduct(group.serum);
+      addProduct(group.faceCream);
+      addProduct(group.faceMask);
+
+
+
+
+
+
 
       /* 
         Multiply groupPrice by 0.10 to calculate 10% of the price for each group.
