@@ -128,6 +128,29 @@ exports.totalPrice = async (req, res) => {
     let faceCreams = [];
     let faceMasks = [];
     let totalPrice = 0;
+    let groupedProductsList = [];
+
+    // Function to add a product to the grouped products list
+    const addToList = (productId) => {
+      const existingProduct = groupedProductsList.find(p => p.productId === productId);
+
+      if (existingProduct) {
+        // If product exists, increment its quantity
+        existingProduct.quantity += 1;
+      } else {
+        // Otherwise, add it to the grouped products list
+        groupedProductsList.push({
+          productId: productId,
+          quantity: 1,
+        });
+      }
+    };
+
+
+
+
+
+
 
     /* 
       Loop through all products in the user's cart. For each product, fetch its details and add the price (multiplied by quantity) 
@@ -148,14 +171,17 @@ exports.totalPrice = async (req, res) => {
         if (item.category === "serum" && item.pickAndMix) {
           for (let i = 0; i < product.quantity; i++) {
             serums.push(item); // Add to serums array
+            addToList(item._id)
           }
         } else if (item.category === "face cream" && item.pickAndMix) {
           for (let i = 0; i < product.quantity; i++) {
             faceCreams.push(item); // Add to faceCreams array
+             addToList(item._id)
           }
         } else if (item.category === "face mask" && item.pickAndMix) {
           for (let i = 0; i < product.quantity; i++) {
             faceMasks.push(item); // Add to faceMasks array
+           addToList(item._id)
           }
         }
       }
@@ -192,6 +218,8 @@ faceMasks.sort((a, b) => b.price - a.price);
     //  Calculate the discount for each group 
     let discount = 0;
 
+    
+
     for (let group of groups) {
 
       // Calculate the total price of the group
@@ -213,10 +241,10 @@ faceMasks.sort((a, b) => b.price - a.price);
 
 
 
-    
+
 
     // Return the totalprice and discounts 
-    res.json({ "totalprice": totalPrice, "discount": discount, "groups" :groups });
+    res.json({ "totalprice": totalPrice, "discount": discount, "groups" :groupedProductsList });
   } catch (error) {
     // Handle and return errors
     res.status(500).json({ error: 'Something went wrong' });
