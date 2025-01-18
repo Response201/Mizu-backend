@@ -161,7 +161,10 @@ exports.totalPrice = async (req, res) => {
       }
     }
 
-
+// Sort each array by price in descending order
+serums.sort((a, b) => b.price - a.price);
+faceCreams.sort((a, b) => b.price - a.price);
+faceMasks.sort((a, b) => b.price - a.price);
 
     // Group products into sets of three: one serum, one face cream, and one face mask
     let groups = [];
@@ -207,8 +210,13 @@ exports.totalPrice = async (req, res) => {
     // Subtract the discount amount from the total price. totalPrice represents the sum of the prices of all products in the user's cart.
     totalPrice -= discount;
 
+
+
+
+    
+
     // Return the totalprice and discounts 
-    res.json({ "totalprice": totalPrice, "discount": discount });
+    res.json({ "totalprice": totalPrice, "discount": discount, "groups" :groups });
   } catch (error) {
     // Handle and return errors
     res.status(500).json({ error: 'Something went wrong' });
