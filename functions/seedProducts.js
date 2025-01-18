@@ -547,6 +547,4 @@ const seedProducts = async () => {
   }
 };
 
-
- 
 module.exports = seedProducts; 
